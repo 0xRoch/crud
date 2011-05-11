@@ -1,0 +1,13 @@
+#{field 'object.' + _name}
+	<label for="${field.id}">
+		&{_name}
+	</label>
+	<input id="${field.id}" class="${field.errorClass}" type="file" name="${field.name}" />
+	#{ifError field.name}
+		<span class="error">${field.error}</span>
+	#{/ifError}
+	#{if _value}
+		<a class="currentData" href="@{data(_id, _name)}">data (${_value.size()})</a>
+        	<span class="removeData"><input type="checkbox" name="${field.name}_delete_" value="true" /> (delete)</span>
+	#{/if}
+#{/field}

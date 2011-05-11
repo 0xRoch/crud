@@ -1,0 +1,117 @@
+#{field 'object.' + _name}
+	<label for="${field.id}">
+		&{_name}
+	</label>
+	<style type="text/css">
+	.&{_name}-list .&{_name} {
+	    cursor: pointer;
+	    padding: 1px 4px;
+	}
+	.&{_name}-list .selected {
+	    background: #222;
+	    color: #fff;
+	}
+	</style>
+        #{script 'jquery.autocomplete.js' /}
+        #{script 'jquery.bgiframe.min.js' /}
+        #{stylesheet 'autocomplete.css' /}
+	<script type="text/javascript">
+	var toggle&{_name} = function(&{_name}El) {
+	    var input = document.getElementById('h'+&{_name}El.id);
+	    if(&{_name}El.className.indexOf('selected') > -1) {
+		&{_name}El.className = '&{_name}';
+		input.value = '';
+	    } else {
+		&{_name}El.className = '&{_name} selected';
+		input.value = &{_name}El.id;
+	    }
+	}
+        
+        function findValue(li) {
+            if( li == null ) return alert("No match!");
+
+            // if coming from an AJAX call, let's use the CityId as the value
+            if( !!li.extra ) var sValue = li.extra[0];
+
+            // otherwise, let's just display the value in the text box
+            else var sValue = li.selectValue;
+            $("#&{_name}-items").append('<span id="'+li.extra[0]+'" onclick="toggle&{_name}(this)" class="">'+li.selectValue+'</span><input id="h'+li.extra[0]+'" type="hidden" name="${field.name}@id" value="" />');
+        }
+
+        function selectItem(li) {
+            findValue(li);
+        }
+
+        function formatItem(row) {
+            return row[0];
+        }
+
+        function lookupAjax(){
+            var oSuggest = $("#&{_name}-auto")[0].autocompleter;
+            oSuggest.findValue();
+            return false;
+        }
+        
+        $().ready(function() {
+            $("#&{_name}-auto").autocomplete('@{autocomplete()}', {
+                    delay:10,
+                    minChars:2,
+                    matchSubset:1,
+                    matchContains:1,
+                    cacheLength:10,
+                    onItemSelect:selectItem,
+                    onFindValue:findValue,
+                    formatItem:formatItem,
+                    autoFill:true,
+                    extraParams:{"oType":"&{_field.relation}"}
+            });
+        });
+	</script>
+	#{if _field.multiple}
+		<div class="&{_name}-list">
+                    <input id="&{_name}-auto" class="${field.errorClass}" type="text" value="" size="50" />
+                        <br /><br />
+                        <div id="&{_name}-items">
+                            %{ play.db.jpa.JPA.getEntityManager().createQuery("from " + _field.relation).getResultList().sort{ it.toString() }.each() { }%
+                            %{
+                                    selected = false;
+                                    if(field.error?.message != 'validation.required') {
+                                            if(params[field.name+'@id']) {
+                                                    selected = params.getAll(field.name+'@id').contains(it.id.toString())
+                                            } else {
+                                                    selected = _value?.contains(it)
+                                            }
+                                    }
+                            }%
+                                %{ if(selected) { }%
+                                <span id="${it.id}" onclick="toggle&{_name}(this)" class="&{_name} ${selected ?  'selected' : ''}">
+                                        ${it}</span>
+                                <input id="h${it.id}" type="hidden" name="${field.name}@id" value="${selected ? it.id : ''}" />
+                                 %{ } }%
+                            %{ } }%
+                        </div>
+		 </div>
+	#{/if}
+	#{else}
+		<select id="${field.id}" name="${field.name}@id">
+			<option value="">&{'crud.none'}</option>
+			%{ play.db.jpa.JPA.getEntityManager().createQuery("from " + _field.relation).getResultList().sort{ it.toString() }.each() { }%
+			%{
+				selected = false
+				if(field.error?.message != 'validation.required') {
+					if(params[field.name+'@id']) {
+						selected = (it.id.toString() == params[field.name+'@id'])
+					} else {
+						selected = it.id == _value?.id
+					}
+				}
+			}%
+			<option value="${it.id}" ${selected ? 'selected="true"'.raw() : ''}>${it}</option>
+			%{ } }%
+		</select>
+	#{/else}
+	
+	#{ifError field.name}
+		<span class="error">${field.error}</span>
+	#{/ifError}
+#{/field}

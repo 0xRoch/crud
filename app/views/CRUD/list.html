@@ -1,0 +1,72 @@
+#{extends 'CRUD/layout.html' /}
+
+<div id="crudList" class="${type.name}">
+
+    <h2 id="crudListTitle">&{'crud.list.title', type.name}</h2>
+
+    <div id="crudListSearch">
+        #{crud.reOrder /}
+        #{crud.search /}
+    </div>
+
+    <div id="crudListTable">
+        #{crud.table /}
+    </div>
+
+    <div id="crudListPagination">
+        #{crud.pagination /}
+    </div>
+
+    <p id="crudListAdd">
+        <a href="@{blank()}">&{'crud.add', type.modelName}</a>
+    </p>
+
+</div>
+
+<script type="text/javascript" charset="utf-8">
+    // Events
+    $(function() {
+       $('.deleter').live('click', function(e) {
+           var l = $(this);
+           e.preventDefault();
+           $.post('@{delete("000000")}'.replace('000000', $(this).parent().parent().attr('rel')), function() {
+              l.parent().parent('li').effect('drop');
+           });
+       });
+       $('.checker').change(function() {
+           var done = $(this).parents('ul').is("#todo");
+           var li = $(this).parent();
+           $.post('@{changeItemState("000000")}'.replace('000000', li.attr('rel')), {done: done}, function() {
+               if(done) {
+                   $('#done').prepend(li);
+                   $(li).effect('highlight')
+               } else {
+                   $('#todo').append(li);
+                   $(li).effect('highlight')
+               }
+           });
+       });
+       $('#sort').click(function(e) {
+           e.preventDefault();
+           if($('#crudListTable').is('.sortable')) {
+               $(this).html("Redorder").removeClass('strong');
+               $('#crudListTable').toggleClass('sortable');
+               $('#crudListTable form, #done, #list input').show();
+               $('#list').sortable('destroy');
+               // Post result
+               var order = '';
+               $('li[rel]').each(function() {
+                   order += ','+$(this).attr('rel');
+               });
+               order = order.substring(1);
+               $.post('@{reorderItems()}', {newOrder: order});
+           } else {
+               $(this).html("I'm done reordering").addClass('strong');
+               $('#crudListTable').toggleClass('sortable');
+               $('#crudListTable form, #done, #list input').hide();
+               $('#crudListTable').sortable({axis: 'y'});
+           }
+       });
+    });
+
+</script>
