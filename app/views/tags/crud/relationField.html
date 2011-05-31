@@ -69,27 +69,26 @@
 	</script>
 	#{if _field.multiple}
 		<div class="&{_name}-list">
-                    <input id="&{_name}-auto" class="${field.errorClass}" type="text" value="" size="50" />
-                        <br /><br />
-                        <div id="&{_name}-items">
-                            %{ play.db.jpa.JPA.getEntityManager().createQuery("from " + _field.relation).getResultList().sort{ it.toString() }.each() { }%
-                            %{
-                                    selected = false;
-                                    if(field.error?.message != 'validation.required') {
-                                            if(params[field.name+'@id']) {
-                                                    selected = params.getAll(field.name+'@id').contains(it.id.toString())
-                                            } else {
-                                                    selected = _value?.contains(it)
-                                            }
-                                    }
-                            }%
-                                %{ if(selected) { }%
-                                <span id="${it.id}" onclick="toggle&{_name}(this)" class="&{_name} ${selected ?  'selected' : ''}">
-                                        ${it}</span>
-                                <input id="h${it.id}" type="hidden" name="${field.name}@id" value="${selected ? it.id : ''}" />
-                                 %{ } }%
-                            %{ } }%
-                        </div>
+			<input id="&{_name}-auto" class="${field.errorClass}" type="text" value="" size="50" />
+		    <br /><br />
+		    <div id="&{_name}-items">
+		        %{ play.db.jpa.JPA.getEntityManager().createQuery("from " + _field.relation).getResultList().sort{ it.toString() }.each() { }%
+		        %{
+		                selected = false;
+		                if(field.error?.message != 'validation.required') {
+		                        if(params[field.name+'@id']) {
+		                                selected = params.getAll(field.name+'@id').contains(it.id.toString())
+		                        } else {
+		                                selected = _value?.contains(it)
+		                        }
+		                }
+		        }%
+		            %{ if(selected) { }%
+		            <span id="${it.id}" onclick="toggle&{_name}(this)" class="&{_name} ${selected ?  'selected' : ''}">${it}</span>
+		            <input id="h${it.id}" type="hidden" name="${field.name}@id" value="${selected ? it.id : ''}" />
+		             %{ } }%
+		        %{ } }%
+		    </div>
 		 </div>
 	#{/if}
 	#{else}
